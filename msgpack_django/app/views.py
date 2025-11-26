@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
-from rest_framework_msgpack.parsers import MessagePackParser
-from rest_framework_msgpack.renderers import MessagePackRenderer
+from .MessagePackParser import MessagePackParser
+from .MessagePackRenderer import MessagePackRenderer
 
 class DataView(APIView):
     """
