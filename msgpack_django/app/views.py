@@ -17,9 +17,12 @@ class DataView(APIView):
     def post(self, request):
         name = request.data.get('name', 'Guest')
         age = request.data.get('age', 0)
+        description = request.data.get('description', '')
         
         response_data = {
-            'message': f"Hello, {name}! We received your age as {age}.",
+            'message': f"Hello, {name}! We received your request",
+            'age': age,
+            'description': description,
             'data_format': request.accepted_renderer.media_type
         }
 

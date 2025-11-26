@@ -69,6 +69,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'msgpack_django.wsgi.application'
+ASGI_APPLICATION = 'msgpack_django.asgi.application'
 
 
 # Database
