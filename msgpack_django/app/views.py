@@ -15,10 +15,6 @@ class DataView(APIView):
     renderer_classes = [MessagePackRenderer, JSONRenderer]
 
     def post(self, request):
-        # request.data will automatically be parsed by DRF
-        # It could be a dict from JSON or a dict from MsgPack binary data.
-        
-        # Accessing data is exactly the same as always:
         name = request.data.get('name', 'Guest')
         age = request.data.get('age', 0)
         
