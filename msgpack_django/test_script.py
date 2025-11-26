@@ -3,7 +3,7 @@ import msgpack
 import json
 
 API_URL = "http://127.0.0.1:8000/api/data/" 
-TEST_DATA = {'name': 'Client A', 'age': 25}
+TEST_DATA = {'name': 'Khanh Super', 'age': 25}
 
 # --- Test Case 1: Send MsgPack, Expect MsgPack (High Performance) ---
 
@@ -18,7 +18,6 @@ print("Testing: MsgPack Input / MsgPack Output")
 response = requests.post(API_URL, data=packed_data, headers=headers_msgpack)
 
 if response.status_code == 200:
-    # Use msgpack to unpack the binary response content
     unpacked_data = msgpack.unpackb(response.content, raw=False)
     print("  Success! Response Data (Unpacked):", unpacked_data)
 else:
