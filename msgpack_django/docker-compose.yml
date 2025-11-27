@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  msgpack_django:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    cpus: 1.0
+    
