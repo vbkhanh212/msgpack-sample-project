@@ -32,25 +32,15 @@ class ApiUser(User):
             response_time_ms = response.elapsed.total_seconds() * 1000
 
             if response.status_code == 200:
-                try:
-                    msgpack.unpackb(response.content, raw=False)
-                    # Fire Locust success event
-                    self.environment.events.request.fire(
-                        request_type="POST",
-                        name=name,
-                        response_time=response_time_ms,
-                        response_length=len(response.content),
-                        exception=None
-                    )
-                except Exception as e:
-                    # Fire Locust failure event
-                    self.environment.events.request.fire(
-                        request_type="POST",
-                        name=name,
-                        response_time=response_time_ms,
-                        response_length=len(response.content),
-                        exception=e
-                    )
+                content = msgpack.unpackb(response.content, raw=False)
+                    
+                self.environment.events.request.fire(
+                    request_type="POST",
+                    name=name,
+                    response_time=response_time_ms,
+                    response_length=len(response.content),
+                    exception=None
+                )
             else:
                 self.environment.events.request.fire(
                     request_type="POST",
