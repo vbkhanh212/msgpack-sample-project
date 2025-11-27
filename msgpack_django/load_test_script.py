@@ -1,6 +1,6 @@
 import msgpack
-import json
-from locust import HttpUser, task, between
+from locust import User, task, between
+import httpx
 
 TEST_DATA = {
     'name': 'Roronoa Zoro',
@@ -9,59 +9,61 @@ TEST_DATA = {
 }
 
 PACKED_DATA = msgpack.packb(TEST_DATA)
-JSON_DATA = json.dumps(TEST_DATA)
 
-class ApiUser(HttpUser):
-    # Time between requests in seconds (simulating user think time)
-    wait_time = between(1, 2.5) 
-    
-    # The base URL for the API
-    host = "http://127.0.0.1:8001" 
+class ApiUser(User):
+    wait_time = between(1, 2.5)
+    host = "http://127.0.0.1:8001"
 
-    @task() 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.http2_client = httpx.Client(base_url=self.host, http2=True, timeout=10.0)
+
+    @task
     def post_msgpack(self):
-        # Send MsgPack, Expect MsgPack
-        headers_msgpack = {
+        headers = {
             'Content-Type': 'application/msgpack',
             'Accept': 'application/msgpack',
         }
-        
-        with self.client.post(
-            "/api/data/", 
-            data=PACKED_DATA, 
-            headers=headers_msgpack, 
-            catch_response=True
-        ) as response:
+
+        name = "POST /api/data/ (MsgPack)"
+
+        try:
+            response = self.http2_client.post("/api/data/", content=PACKED_DATA, headers=headers)
+            response_time_ms = response.elapsed.total_seconds() * 1000
+
             if response.status_code == 200:
                 try:
-                    # Attempt to unpack the response content
                     msgpack.unpackb(response.content, raw=False)
-                    response.success()
+                    # Fire Locust success event
+                    self.environment.events.request.fire(
+                        request_type="POST",
+                        name=name,
+                        response_time=response_time_ms,
+                        response_length=len(response.content),
+                        exception=None
+                    )
                 except Exception as e:
-                    response.failure(f"MsgPack Unpacking Failed: {e}")
+                    # Fire Locust failure event
+                    self.environment.events.request.fire(
+                        request_type="POST",
+                        name=name,
+                        response_time=response_time_ms,
+                        response_length=len(response.content),
+                        exception=e
+                    )
             else:
-                response.failure(f"Request failed with status {response.status_code}")
-
-    # @task() 
-    # def post_json(self):
-    #     # Send JSON, Expect JSON
-    #     headers_json = {
-    #         'Content-Type': 'application/json',
-    #         'Accept': 'application/json',
-    #     }
-        
-    #     with self.client.post(
-    #         "/api/data/", 
-    #         data=JSON_DATA, 
-    #         headers=headers_json, 
-    #         catch_response=True
-    #     ) as response:
-    #         if response.status_code == 200:
-    #             try:
-    #                 # Attempt to parse the response content as JSON
-    #                 response.json()
-    #                 response.success()
-    #             except json.JSONDecodeError as e:
-    #                 response.failure(f"JSON Decoding Failed: {e}")
-    #         else:
-    #             response.failure(f"Request failed with status {response.status_code}")
+                self.environment.events.request.fire(
+                    request_type="POST",
+                    name=name,
+                    response_time=response_time_ms,
+                    response_length=len(response.content),
+                    exception=Exception(f"Status code {response.status_code}")
+                )
+        except Exception as e:
+            self.environment.events.request.fire(
+                request_type="POST",
+                name=name,
+                response_time=0,
+                response_length=0,
+                exception=e
+            )
