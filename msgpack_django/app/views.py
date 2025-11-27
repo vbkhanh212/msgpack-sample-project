@@ -20,12 +20,10 @@ class DataView(APIView):
         description = request.data.get('description', '')
         
         response_data = {
-            'message': f"Hello, {name}! We received your request",
+            'name': name,
             'age': age,
-            'description': description,
-            'data_format': request.accepted_renderer.media_type
+            'description': description
         }
 
-        # DRF's Response object will be serialized by the chosen renderer
         return Response(response_data, status=status.HTTP_200_OK)
     

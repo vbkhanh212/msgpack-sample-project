@@ -33,14 +33,22 @@ class ApiUser(User):
 
             if response.status_code == 200:
                 content = msgpack.unpackb(response.content, raw=False)
-                    
-                self.environment.events.request.fire(
-                    request_type="POST",
-                    name=name,
-                    response_time=response_time_ms,
-                    response_length=len(response.content),
-                    exception=None
-                )
+                if content.get('name') == TEST_DATA['name'] and content.get('age') == TEST_DATA['age']:
+                    self.environment.events.request.fire(
+                        request_type="POST",
+                        name=name,
+                        response_time=response_time_ms,
+                        response_length=len(response.content),
+                        exception=None
+                    )
+                else:
+                    self.environment.events.request.fire(
+                        request_type="POST",
+                        name=name,
+                        response_time=response_time_ms,
+                        response_length=len(response.content),
+                        exception=Exception("Response data mismatch")
+                    )
             else:
                 self.environment.events.request.fire(
                     request_type="POST",
